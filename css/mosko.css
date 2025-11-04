@@ -985,6 +985,7 @@ input[type=radio], input[type=checkbox] {
 .galleryThumbs {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .galleryPhoto {
@@ -1050,4 +1051,13 @@ input[type=radio], input[type=checkbox] {
   z-index: 1500;
   box-shadow: none !important;
   margin: auto;
+}
+
+@media print{
+#topMenu{
+display: none;
+}
+  .homeDesc{
+display: none;
+}
 }

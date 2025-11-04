@@ -35,12 +35,13 @@
           </div>
 
           <div class="gallery">
-            <img class="galleryPhoto" src="{{options.baseurl}}data/products/{{productId}}/cover.jpg" alt="{{productId}}"/>
+            <a href="{{options.baseurl}}data/products/{{productId}}/cover.jpg" data-fancybox="gallery" data-caption="{{product.opts.name}}">
+            	<img class="galleryPhoto" src="{{options.baseurl}}data/products/{{productId}}/cover.jpg" alt="{{productId}}"/></a>
             {% if images | length > 1 %}
               <div class="galleryThumbs">
                 {% for photokey, photo in product %}
                   {% if '.jpg' in photo %}
-                    <img class="thumb" src="{{options.baseurl}}data/products/{{productId}}/{{photo}}" alt="{{productId}}"/>
+                    <a href="{{options.baseurl}}data/products/{{productId}}/{{photo}}" data-fancybox="gallery" data-caption="{{product.opts.name}}"><img class="thumb" src="{{options.baseurl}}data/products/{{productId}}/{{photo}}" alt="{{productId}}"/></a>
                   {% endif %}
                 {% endfor %}
                 </div>

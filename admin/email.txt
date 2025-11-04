@@ -1,12 +1,12 @@
-To: moskom@centrum.sk
+To: matej.mosko@gmail.com
 
- Subject: Záujem o gow
+ Subject: Záujem o be25
 
- From: info@panakrala.sk
+ From: mm.mosko@gmail.com
 
- Txt: Dobrý deň, máme záujem o váš produkt Game of Worlds. Pošlite nám prosím detailnejšie informácie.
+ Txt: test
 
  Headers: MIME-Version: 1.0
 Content-type:text/html;charset=UTF-8
-From: Hry Pána Kráľa <info@panakrala.sk>
-Cc: <info@panakrala.sk>
+From: Ing. Miroslav Moško <mm.mosko@gmail.com>
+Cc: <mm.mosko@gmail.com>

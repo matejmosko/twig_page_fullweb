@@ -182,6 +182,16 @@ $('document').ready(function() {
   }
   $(window).scroll(fixDiv);
   fixDiv();
+  
+  // FANCYBOX
+  
+	$('[data-fancybox="gallery"]').fancybox({
+		'transitionIn'	:	'elastic',
+		'transitionOut'	:	'elastic',
+		'speedIn'	:	300, 
+		'speedOut'	:	200,
+		'loop'		:	true
+	});
 
 
   /*
