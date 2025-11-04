@@ -9,6 +9,12 @@ admin/vendor/
 admin/*.txt
 doc
 .htaccess
+!*/*.png
+/*.png
+!*/*.svg
+/*.svg
+!*/*.ico
+/*.ico
 
 # Project folders
 gow*

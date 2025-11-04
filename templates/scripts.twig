@@ -14,15 +14,14 @@
 <script>
   function onRecaptchaLoadCallback() {
     var clientId = grecaptcha.render('recaptcha_container', {
-      'sitekey': '6LcsPIYUAAAAAMqbNsx-May3Gd7UMglrYCVelRFu',
+      'sitekey': '{{options.recaptchaSecret}}',
       'badge': 'inline',
       'size': 'invisible'
     });
 
     grecaptcha.ready(function() {
       grecaptcha.execute(clientId, {action: 'sendmail'}).then(function(token) {
-        var recaptchaResponse = document.getElementById('recaptchaResponse');
-        recaptchaResponse.value = token;
+        document.getElementById('recaptchaResponse').value = token;
       });
     });
   }

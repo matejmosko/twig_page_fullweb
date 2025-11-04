@@ -1,5 +1,5 @@
 <?php
-
+header('Content-Type: text/html; charset=utf-8');
 if (isset($_GET['debug'])) {
     $debug = $_GET['debug'];
 } else {
@@ -11,6 +11,7 @@ if ($debug) {
     ini_set('display_errors', 1);
 }
 
+mb_internal_encoding("UTF-8");
 Locale::setDefault('sk_SK');
 
 require_once(__DIR__ . '/functions.php');
@@ -444,7 +445,7 @@ function createFiles()
             saveProduct($key);
         }
     }
-    echo "<p>Done.</p>";
+    //echo "<p>Done.</p>";
 }
 
 

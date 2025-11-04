@@ -1,11 +1,12 @@
 {% autoescape false %}
-    <form id="formReg-{{eventId}}" class="regForm" action="{{options.baseurl}}admin/registration.php" method="post">
+    <form id="formReg-{{eventId}}" class="regForm" accept-charset="utf-8" action="{{options.baseurl}}admin/registration.php" method="post">
         <input type="hidden" name="project" value="{{projectId}}">
         <input type="hidden" name="event" value="{{eventId}}">
         <input type="hidden" name="capacity" value="{{event.opts.capacity}}">
         <label for="email">Váš email</label><input type="email" id="email" name="email" required>
         <label for="name">Názov tímu: </label><input type="text" id="name" name="name" minlenght="2" required>
         <label for="message">Odkaz pre Turban Quiz:</label> <textarea id="message" name="message"></textarea>
+        <input type="hidden" name="recaptcha_response" id="recaptchaResponse">
         {{checkboxes}}
         <div class="g-recaptcha" data-sitekey="6LfjIEQUAAAAANJWi2oR1icgz64rRaoiQlSh7ZxY"></div>
         <input type="submit" value="Prihlasujem tento tím" class="cta">

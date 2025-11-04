@@ -1,23 +1,28 @@
-<form id="formReg-{{eventId}}" class="regForm" action="{{options.baseurl}}admin/registration.php" method="post">
+{% autoescape false %}
+  <form id="formReg-{{eventId}}" class="regForm" accept-charset="utf-8" action="{{options.baseurl}}admin/registration.php" method="post">
     <input type="hidden" name="project" value="{{projectId}}">
     <input type="hidden" name="event" value="{{eventId}}">
     <input type="hidden" name="capacity" value="{{event.opts.capacity}}">
-    <label for="email">Email:</label> <input type="email" name="email" required>
-    <label for="name">Názov tímu:</label> <input type="text" name="name" required>
-    <label for="faction">Krajina:</label> <select name="faction">
-          {% for key,faction in event.opts.factions %}
-          {% if faction.playing == false %}
-          <option>{{faction.country}}</option>
-          {% endif %}
-          {% endfor %}
-        </select>
-        <label for="message">Poznámka:</label> <textarea name="message"></textarea>
-      {{checkboxes}}
-    <div class="g-recaptcha" data-sitekey="6LfjIEQUAAAAANJWi2oR1icgz64rRaoiQlSh7ZxY"></div>
-    <input type="submit" value="Prihlasujem tento tím" class="cta">
-</form>
-<script>
+    <label for="email">Email:</label>
+    <input type="email" name="email" required="required">
+    <label for="name">Názov tímu:</label>
+    <input type="text" name="name" required="required">
+    <label for="faction">Krajina:</label>
+    <select name="faction">
+      {% for key, faction in event.opts.factions %}
+        {% if faction.playing == false %}
+          <option>{{faction.country}} ({{faction.desc}})</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+    <label for="message">Poznámka:</label>
+    <textarea name="message"></textarea>
+    <input type="hidden" name="recaptcha_response" id="recaptchaResponse">
 
-</script>
-<div id="formResult-{{eventId}}" class="formResult" panakrala-projectid="{{projectId}}" panakrala-eventid="{{eventId}}">
-</div>
+    {{checkboxes}}
+    <br />
+    <input type="submit" value="Prihlasujem tento tím" class="cta">
+
+  </form>
+  <div id="formResult-{{eventId}}" class="formResult" panakrala-projectid="{{projectId}}" panakrala-eventid="{{eventId}}"></div>
+{% endautoescape %}

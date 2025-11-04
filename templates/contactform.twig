@@ -2,14 +2,14 @@
 
   <div class="container">
     <h3 class="title">Chcete vedieť viac?</h3>
-    <form id="contactForm" class="contactForm" action="{{options.baseurl}}admin/sendform.php" method="post">
+    <form id="contactForm" class="contactForm" accept-charset="utf-8" action="{{options.baseurl}}admin/sendform.php" method="post">
       <label for="email">Váš email</label>
       <input type="email" id="email" name="email" placeholder="Váš email.." required="required">
       <input type="hidden" id="subject" name="subject" value="{{subject}}">
 
       <textarea id="text" name="text" placeholder="Napíšte nám.." minlenght="5" required="required">{{text}}</textarea>
       <input type="hidden" name="recaptcha_response" id="recaptchaResponse">
-      <br/>
+      <br />
       <input id="submitContactForm" type="submit" value="Odoslať" class="contactFormSubmit ctaBtn">
 
       <div id="contactFormResult" class="contactFormResult"></div>

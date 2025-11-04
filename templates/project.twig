@@ -1,5 +1,20 @@
 {% autoescape false %}
   <div class="projectPage">
+    {% if events != "" %}
+      {% if filterEvents == "next" %}
+        <div class="eventsList">
+          <h3 class="title darkBackground">{{data.opts.strings.events_next}}</h3>
+          <div id="rezervacie" class="events nextEvents flexRow">
+            {{events}}
+          </div>
+        {% else %}
+          <h3 class="title">{{data.opts.strings.events_past}}</h3>
+          <div id="rezervacie" class="events pastEvents flexRow">
+            {{events}}
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
     <div class="projectDesc contentBlock blockTrans">
       <div class="textBlock projectText blockLight">{{data.mainText}}</div>
     </div>
@@ -34,21 +49,6 @@
         </a>
       {% endfor %}
     </div>
-    {% if events != "" %}
-      {% if filterEvents == "next" %}
-        <div class="eventsList">
-          <h3 class="title darkBackground">{{data.opts.strings.events_next}}</h3>
-          <div id="rezervacie" class="events nextEvents flexRow">
-            {{events}}
-          </div>
-        {% else %}
-          <h3 class="title">{{data.opts.strings.events_past}}</h3>
-          <div id="rezervacie" class="events pastEvents flexRow">
-            {{events}}
-          </div>
-        </div>
-      {% endif %}
-    {% endif %}
 
   </div>
 {% endautoescape %}

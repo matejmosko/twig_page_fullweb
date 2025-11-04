@@ -37,7 +37,11 @@
               <div class="guestList foldable">
                 <ol>
                   {% for key, guest in guestList %}
-                    <li>{{guest.name}}</li>
+                    <li>{{guest.name}}
+{% if guest.faction is not empty %}
+                       [{{guest.faction}}]
+{% endif %}
+                     </li>
                     {% endfor%}
                   </ol>
                 </div>

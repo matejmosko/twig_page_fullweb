@@ -1,9 +1,8 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
+header('Content-Type: text/html; charset=utf-8');
 require_once(__DIR__."/render.php");
 require_once(__DIR__."/functions.php");
+
 
 if (!empty($_POST['name']) && !empty($_POST['email'])) {
     //addGuest($_POST);
@@ -11,7 +10,7 @@ if (!empty($_POST['name']) && !empty($_POST['email'])) {
         addGuest($_POST);
     }
 } else {
-    echo "Zadajte údaje prihlasovaného tímu.";
+    echo "Zadajte údaje prihlasovaného tímu do formulára.";
 }
 
 /* reCaptcha */
@@ -36,10 +35,14 @@ function dbNewGuest($newGuest)
     $personalcheck = $newGuest['personalCheck'] ?? "";
     $emailcheck = $newGuest['emailCheck'] ?? "";
 
+    $subject = "Úspešne ste registrovali tím".$name."na ".$event;
+    $txt = "<p>Dobrý deň, </p><p>ďakujeme za Vašu registráciu na ".$event.". Prihlásili ste sa pod menom ".$name." a budete hrať za ".$faction.". Autorom hry, teda nám, ste odkázali túto správu: '".$message."'. Ďakujeme. </p><p>S pozdravom<br />Hry Pána kráľa</p>";
+
     $sql = "INSERT INTO events_guests (project, event, name, email, message, faction, personalcheck, emailcheck) VALUES ('$project', '$event', '$name', '$email', '$message', '$faction', '$personalcheck', '$emailcheck')";
 
     if (mysqli_query($conn, $sql)) {
         saveProject($project); // Renders new html for project = adds new team.
+        sendMessage($email, $subject, $txt);
         echo "Úspešne ste zaregistrovali tím ".$name." na ".$event;
     } else {
         echo "Error: " . $sql . "<br>" . mysqli_error($conn);
