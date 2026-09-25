@@ -10,7 +10,11 @@ header('Content-Type: text/html; charset=utf-8');
 require __DIR__ . '/vendor/autoload.php';
 require_once(__DIR__."/../kamosko-config.php");
 
+
+
 $data = getData();
+$GLOBALS['options']['recaptcha_site_key'] = '6LcsPIYUAAAAAMqbNsx-May3Gd7UMglrYCVelRFu';
+$GLOBALS['options']['recaptcha_secret_key'] = 'AIzaSyDwLW2GWqtpGtb6gagw2LpuKH2LofguV10';
 
   if (isset($_GET['script'])) {
       $script = $_GET['script'];
@@ -131,10 +135,18 @@ function recursiveJsonSearch(&$data, $path)
             $json = parseJsonFile($value, $path);
 
             $data['opts'] = json_decode($json, true);
-            /* Convert date to timestamp for later comparison */
-            if (array_key_exists('date', $data['opts'])) {
-                $data['opts']['timestamp'] = strtotime($data['opts']['date']);
-            }
+            if (is_array($data['opts'])) {
+        
+        /* Convert date to timestamp for later comparison */
+        if (array_key_exists('date', $data['opts'])) {
+            $data['opts']['timestamp'] = strtotime($data['opts']['date']);
+        }
+        
+    } else {
+        // Ak bol súbor prázdny alebo poškodený, inicializujeme ho ako prázdne pole,
+        // aby s ním neskôr iné funkcie (napr. Twig) vedeli pracovať bez chýb.
+        $data['opts'] = array();
+    }
         } elseif (pathinfo($value, PATHINFO_EXTENSION) == "md") {
             $data[pathinfo($value, PATHINFO_FILENAME)] = parseMarkdownFile($value, $path);
         }
@@ -146,28 +158,73 @@ function solveCaptcha()
 {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Build POST request:
-        $recaptcha_url = 'https://www.google.com/recaptcha/api/siteverify';
-        $recaptcha_secret = '6LcsPIYUAAAAAOj6vgx6MY7C6neIRPzaBL7l8bzB';
-        $recaptcha_response = $_POST['recaptcha_response'];
+        $recaptcha_response = isset($_POST['recaptcha_response']) ? $_POST['recaptcha_response'] : '';
 
-        // Make and decode POST request:
-        $recaptcha = file_get_contents($recaptcha_url . '?secret=' . $recaptcha_secret . '&response=' . $recaptcha_response);
-        $recaptcha = json_decode($recaptcha);
-
-        // Take action based on the score returned:
-        //echo "<pre>";
-        //print_r($recaptcha);
-        //echo "</pre>";
-
-        if ($recaptcha->score <= 0.5) {
-            echo "<p class='error'>Máme podozrenie, že si robot. Ak nie ste robot, napíšte nám priamo na emailovú adresu uvedenú v sekcii Kontakt. Ak si robot, nechytaj sa našej stránky.</p>";
+        if (empty($recaptcha_response)) {
+            echo "<p class='error'>Chýba overovací token reCAPTCHA Enterprise.</p>";
             return false;
+        }
+
+        // ====================================================================
+        // KONFIGURÁCIA PRE GOOGLE CLOUD RECAPTCHA ENTERPRISE
+        // ====================================================================
+        // 1. Project ID nájdeš na domovskej stránke Google Cloud Konzoly
+        $projectId = 'scenickazatva-343517'; 
+        
+        // 2. API Kľúč si vygeneruješ v GCP -> API & Služby -> Poverenia (Credentials)
+        $apiKey    = $GLOBALS['options']['recaptcha_secret_key']; // Automaticky vezme '6LcsPIYUAAAAAOj6vgx6MY7C6neIRPzaBL7l8bzB'
+        
+        $siteKey   = $GLOBALS['options']['recaptcha_site_key']; // '6LcsPIYUAAAAAMqbNsx-May3Gd7UMglrYCVelRFu'
+        
+        $url = "https://recaptchaenterprise.googleapis.com/v1/projects/{$projectId}/assessments?key={$apiKey}";
+
+        // Príprava dát vo formáte JSON pre Enterprise API
+        $data = [
+            'event' => [
+                'token' => $recaptcha_response,
+                'siteKey' => $siteKey,
+                'expectedAction' => 'submit'
+            ]
+        ];
+
+        $options = [
+            'http' => [
+                'header'  => "Content-Type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($data),
+                'ignore_errors' => true // Pomôže nám zachytiť presný dôvod chyby od Googlu
+            ]
+        ];
+
+        $context  = stream_context_create($options);
+        $response = file_get_contents($url, false, $context);
+        $result = json_decode($response);
+
+        // Overenie úspešnosti tokenu v Enterprise prostredí
+        if (isset($result->tokenProperties->valid) && $result->tokenProperties->valid === true) {
+            
+            // Enterprise API vracia risk skóre od 0.0 (bot) po 1.0 (človek)
+            $score = isset($result->riskAnalysis->score) ? $result->riskAnalysis->score : 0;
+
+            if ($score <= 0.5) {
+                echo "<p class='error'>Máme podozrenie, že požiadavka prišla od robota. Ak nie ste robot, napíšte nám priamo na email.</p>";
+                return false;
+            } else {
+                // Skóre je v poriadku, vrátime true a sendform.php odošle mail
+                return true;
+            }
         } else {
-            echo "<p class='success'>Vaša správa úspešne opustila túto stránku a mala by doraziť tak na Váš email ako aj na našu adresu ".$GLOBALS['data']['opts']['contactEmail']."</p>";
-            return true;
+            // Pomôcka pre teba: ak odosielanie zlyhá, vypíše sa presný dôvod zlyhania priamo z Google serverov
+            echo "<p class='error'>Overenie reCAPTCHA Enterprise zlyhalo (Chyba konfigurácie API).</p>";
+            if (is_array($result) || is_object($result)) {
+                echo "<div style='background:#f8d7da; padding:10px; margin-top:10px; font-family:monospace;'>";
+                echo "<strong>Google Enterprise API odpoveď:</strong><pre>" . print_r($result, true) . "</pre>";
+                echo "</div>";
+            }
+            return false;
         }
     }
+    return false;
 }
 
 /* REGISTRATION SYSTEM */
@@ -272,7 +329,7 @@ function sendMessage($to, $subject, $txt)
     $headers .= 'From: '.$GLOBALS['data']['opts']['emailFrom']. "\r\n";
     $headers .= 'Cc: <'.$from.'>' . "\r\n";
 
-    if (mail($to, $subject, $txt, $headers)) {echo "great";} else return "<p class='error'>Pri posielaní správy došlo k chybe. Skúste nám správu poslať priamo na ". $from."</p>";
+    if (mail($to, $subject, $txt, $headers)) {echo "<p class='success'>Ďakujeme za požiadavku. Čoskoro na ňu budeme reagovať.</p>";} else return "<p class='error'>Pri posielaní správy došlo k chybe. Skúste nám správu poslať priamo na ". $from."</p>";
 
     //file_put_contents("email.txt", "To: ".$to."\n\n Subject: ".$subject."\n\n From: ".$from."\n\n Txt: ".$txt."\n\n Headers: ".$headers);
 }

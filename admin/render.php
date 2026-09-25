@@ -16,9 +16,21 @@ Locale::setDefault('sk_SK');
 
 require_once(__DIR__ . '/functions.php');
 
-$loader = new Twig_Loader_Filesystem($GLOBALS['options']['basepath'].'templates/');
-$twig = new Twig_Environment($loader);
-$twig->addExtension(new Twig_Extensions_Extension_Intl());
+$loader = new Twig\Loader\FilesystemLoader($GLOBALS['options']['basepath'].'templates/');
+$twig = new \Twig\Environment($loader);
+//$twig->addExtension(new Twig_Extensions_Extension_Intl());
+
+// ====================================================================
+// JEDNOTNÁ OPRAVA PRE PHP 8.3: Odfiltruje stringy (napr. obrázky) z dát
+// ====================================================================
+if (isset($GLOBALS['data']['products']) && is_array($GLOBALS['data']['products'])) {
+    $GLOBALS['data']['products'] = array_filter($GLOBALS['data']['products'], 'is_array');
+}
+
+if (isset($GLOBALS['data']['projects']) && is_array($GLOBALS['data']['projects'])) {
+    $GLOBALS['data']['projects'] = array_filter($GLOBALS['data']['projects'], 'is_array');
+}
+// ====================================================================
 
 createFiles();
 
@@ -40,7 +52,7 @@ function renderForm($projectId, $eventId)
     'options' => $GLOBALS['options'],
     'checkboxes' => renderFormCheckboxes(),
     'guestCount' => eventGuestCount($eventId),
-    'recaptcha' => "recaptcha" // TODO Recaptcha
+    'recaptcha' => isset($GLOBALS['options']['recaptcha_site_key']) ? $GLOBALS['options']['recaptcha_site_key'] : ""
   ));
 }
 
@@ -124,9 +136,12 @@ function renderProjects()
 
 function mapProductCategory($element)
 {
-    return $element['opts']['category'];
+	if (!is_array($element) || !isset($element['opts']['category'])) {
+    return 'Nezaradené';
 }
-
+return $element['opts']['category'];
+}
+/*
 function renderProducts()
 {
     if (array_key_exists('products', $GLOBALS['data'])) {
@@ -142,6 +157,46 @@ function renderProducts()
           'categories' => $categories,
           'options' => $GLOBALS['options']
   ));
+    } else {
+        return "";
+    }
+}
+*/
+
+function renderProducts()
+{
+    if (array_key_exists('products', $GLOBALS['data'])) {
+        $raw_products = $GLOBALS['data']['products'];
+        $products = array();
+
+        // Overenie a filtrácia dát: do spracovania pustíme len korektné produkty (polia)
+        foreach ($raw_products as $key => $item) {
+            if (is_array($item) && isset($item['opts']['category'])) {
+                $products[$key] = $item;
+            }
+        }
+
+        // Ak po filtrácii nezostali žiadne platné produkty, vykreslíme prázdny zoznam
+        if (empty($products)) {
+            return $GLOBALS['twig']->render('productlist.twig', array(
+                'data' => $GLOBALS['data'],
+                'products' => [],
+                'categories' => [],
+                'options' => $GLOBALS['options']
+            ));
+        }
+
+        // Teraz je už array_map stopercentne bezpečný
+        array_multisort(array_map("mapProductCategory", $products), SORT_ASC, $products);
+
+        $categories = array_values(array_unique(array_map("mapProductCategory", $products)));
+
+        return $GLOBALS['twig']->render('productlist.twig', array(
+          'data' => $GLOBALS['data'],
+          'products' => $products,
+          'categories' => $categories,
+          'options' => $GLOBALS['options']
+        ));
     } else {
         return "";
     }
@@ -211,7 +266,9 @@ function renderProject($projectId, $filterEvents)
     'events' => renderEvents($projectId, $filterEvents),
     'options' => $GLOBALS['options'],
     'filterEvents' => $filterEvents,
-    'contactForm' => renderContactForm('Záujem o '.$projectId, 'Dobrý deň, máme záujem o váš produkt '.$GLOBALS['data']['projects'][$projectId]['opts']['name'].'. Pošlite nám prosím detailnejšie informácie.')
+    'contactForm' => renderContactForm('Záujem o '.$projectId, 'Dobrý deň, máme záujem o váš produkt '.$GLOBALS['data']['projects'][$projectId]['opts']['name'].'. Pošlite nám prosím detailnejšie informácie.'),
+    'recaptcha' => isset($GLOBALS['options']['recaptcha_site_key']) ? $GLOBALS['options']['recaptcha_site_key'] : ""
+
     //'pastEvents' => renderEvents($project, 'past')
   ));
 }
@@ -238,6 +295,7 @@ function renderProduct($productId)
     'productId' => $productId,
     'options' => $GLOBALS['options'],
     'contactForm' => renderContactForm('Záujem o '.$productId, 'Dobrý deň, máme záujem o váš produkt '.$GLOBALS['data']['products'][$productId]['opts']['name'].'. Pošlite nám prosím detailnejšie informácie.')
+    
   ));
 }
 
@@ -278,7 +336,8 @@ function renderContactForm($subject, $text)
   'data' => $GLOBALS['data'],
   'options' => $GLOBALS['options'],
   'subject' => $subject,
-  'text' => $text
+  'text' => $text,
+  'recaptcha' => isset($GLOBALS['options']['recaptcha_site_key']) ? $GLOBALS['options']['recaptcha_site_key'] : ""
 ));
 }
 

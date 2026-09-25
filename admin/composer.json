@@ -10,8 +10,7 @@
     ],
     "require": {
       "monolog/monolog": "1.0.*",
-      "twig/twig": "^2.0",
-        "twig/extensions": "^1.5",
+      "twig/twig": "^3.0",
         "erusev/parsedown": "^1.7",
         "erusev/parsedown-extra": "^0.7.1"
     }

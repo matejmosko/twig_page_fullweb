@@ -10,19 +10,44 @@
 <script src="{{options.baseurl}}js/plugins.js?v={{today}}"></script>
 <script src="{{options.baseurl}}js/main.js?v={{today}}"></script>
 
-<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onRecaptchaLoadCallback"></script>
+<script src="https://www.google.com/recaptcha/enterprise.js?render=6LcsPIYUAAAAAMqbNsx-May3Gd7UMglrYCVelRFu" async defer></script>
 <script>
-  function onRecaptchaLoadCallback() {
-    var clientId = grecaptcha.render('recaptcha_container', {
-      'sitekey': '{{options.recaptchaSecret}}',
-      'badge': 'inline',
-      'size': 'invisible'
-    });
+  function onSubmit(e) {
+    e.preventDefault(); // Zastavíme klasické odoslanie a prechod na inú stránku
+    
+    grecaptcha.enterprise.ready(function() {
+        grecaptcha.enterprise.execute('6LcsPIYUAAAAAMqbNsx-May3Gd7UMglrYCVelRFu', {action: 'submit'}).then(function(token) {
+            var responseInput = document.getElementById('recaptchaResponse');
+            if (responseInput) {
+                responseInput.value = token;
+            }
 
-    grecaptcha.ready(function() {
-      grecaptcha.execute(clientId, {action: 'sendmail'}).then(function(token) {
-        document.getElementById('recaptchaResponse').value = token;
-      });
+            // ODEŠLEME FORMULÁR CEZ AJAX (na pozadí)
+            var $form = $('#contactForm');
+            var $resultDiv = $('#contactFormResult');
+
+            $.ajax({
+                type: $form.attr('method'),
+                url: $form.attr('action'),
+                data: $form.serialize(),
+                success: function(response) {
+                    // Vloží text "Ďakujeme za požiadavku..." priamo do pripraveného divu pod formulárom
+                    $resultDiv.html("<p class='success_inline'>" + response + "</p>");
+                    // Vyčistíme textové pole, aby používateľ videl, že sa formulár odoslal
+                    $form.find('textarea, input[type="email"]').val('');
+                },
+                error: function() {
+                    $resultDiv.html("<p class='error'>Pri odosielaní formulára nastala neočakávaná chyba.</p>");
+                }
+            });
+        });
     });
   }
+
+  document.addEventListener("DOMContentLoaded", function() {
+      var submitBtn = document.getElementById('submitContactForm');
+      if (submitBtn) {
+          submitBtn.addEventListener('click', onSubmit);
+      }
+  });
 </script>
